@@ -5,6 +5,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:home_services_provider/app/modules/auth/views/otp_verification.dart';
+import 'package:home_services_provider/app/modules/auth/views/service_provider/freelance_service.dart';
+import 'package:home_services_provider/app/modules/e_services/controllers/e_service_form_controller.dart';
 
 import 'package:home_services_provider/app/modules/global_widgets/block_button_widget.dart';
 import 'package:home_services_provider/app/modules/global_widgets/text_field_widget.dart';
@@ -277,12 +279,12 @@ class _UserAddressState extends State<UserAddress> {
                                     .value
                                     .enableOtp) {
                                   await _userRepository.sendCodeToPhone();
-                                  widget.isFreelancer
-                                      ? Get.to(() => OtpVerification(
-                                            isFreelancer: widget.isFreelancer,
-                                          ))
-                                      : await Get.toNamed(
-                                          Routes.OTP_VERIFICATION);
+                                  if (widget.isFreelancer) {
+                                    await Get.put(EServiceFormController());
+                                    await Get.toNamed(Routes.BECOME_PROVIDER);
+                                  } else {
+                                    await Get.toNamed(Routes.OTP_VERIFICATION);
+                                  }
                                 }
                               }
                             },

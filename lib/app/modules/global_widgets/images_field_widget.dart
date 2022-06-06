@@ -30,9 +30,11 @@ class ImagesFieldController extends GetxController {
     uploading.value = false;
   }
 
-  Future pickImage(ImageSource source, String field, ValueChanged<String> uploadCompleted) async {
+  Future pickImage(ImageSource source, String field,
+      ValueChanged<String> uploadCompleted) async {
     ImagePicker imagePicker = ImagePicker();
-    XFile pickedFile = await imagePicker.pickImage(source: source, imageQuality: 80);
+    XFile pickedFile =
+        await imagePicker.pickImage(source: source, imageQuality: 80);
     File imageFile = File(pickedFile.path);
     print(imageFile);
     if (imageFile != null) {
@@ -49,7 +51,8 @@ class ImagesFieldController extends GetxController {
       }
     } else {
       uploading.value = false;
-      Get.showSnackbar(Ui.ErrorSnackBar(message: "Please select an image file".tr));
+      Get.showSnackbar(
+          Ui.ErrorSnackBar(message: "Please select an image file".tr));
     }
   }
 
@@ -75,13 +78,19 @@ class ImagesFieldWidget extends StatelessWidget {
     @required this.uploadCompleted,
     this.initialImages,
     @required this.reset,
+    this.padding,
+    this.margin,
+    this.color,
   }) : super(key: key);
 
   final String label;
   final String placeholder;
   final String buttonText;
   final String tag;
+  final EdgeInsets padding;
+  final EdgeInsets margin;
   final String field;
+  final Color color;
   final List<Media> initialImages;
   final ValueChanged<String> uploadCompleted;
   final ValueChanged<List<String>> reset;
@@ -90,13 +99,18 @@ class ImagesFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ImagesFieldController(), tag: tag);
     return Container(
-      padding: EdgeInsets.only(top: 8, bottom: 10, left: 20, right: 20),
-      margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+      padding:
+          padding ?? EdgeInsets.only(top: 8, bottom: 10, left: 20, right: 20),
+      margin:
+          margin ?? EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
       decoration: BoxDecoration(
-          color: Get.theme.primaryColor,
+          color: color ?? Get.theme.primaryColor,
           borderRadius: BorderRadius.all(Radius.circular(10)),
           boxShadow: [
-            BoxShadow(color: Get.theme.focusColor.withOpacity(0.1), blurRadius: 10, offset: Offset(0, 5)),
+            BoxShadow(
+                color: Get.theme.focusColor.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, 5)),
           ],
           border: Border.all(color: Get.theme.focusColor.withOpacity(0.05))),
       child: Column(
@@ -122,7 +136,8 @@ class ImagesFieldWidget extends StatelessWidget {
                 },
                 shape: StadiumBorder(),
                 color: Get.theme.focusColor.withOpacity(0.1),
-                child: Text(buttonText ?? "Reset".tr, style: Get.textTheme.bodyText1),
+                child: Text(buttonText ?? "Reset".tr,
+                    style: Get.textTheme.bodyText1),
                 elevation: 0,
                 hoverElevation: 0,
                 focusElevation: 0,
@@ -174,7 +189,8 @@ class ImagesFieldWidget extends StatelessWidget {
                         width: double.infinity,
                         height: 100,
                       ),
-                      errorWidget: (context, url, error) => Icon(Icons.error_outline),
+                      errorWidget: (context, url, error) =>
+                          Icon(Icons.error_outline),
                     ),
                   ))
               ?.toList() ??
@@ -200,14 +216,18 @@ class ImagesFieldWidget extends StatelessWidget {
         else
           return GestureDetector(
             onTap: () async {
-              await controller.pickImage(ImageSource.gallery, field, uploadCompleted);
+              await controller.pickImage(
+                  ImageSource.gallery, field, uploadCompleted);
             },
             child: Container(
               width: 100,
               height: 100,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: Get.theme.focusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-              child: Icon(Icons.add_photo_alternate_outlined, size: 42, color: Get.theme.focusColor.withOpacity(0.4)),
+              decoration: BoxDecoration(
+                  color: Get.theme.focusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10)),
+              child: Icon(Icons.add_photo_alternate_outlined,
+                  size: 42, color: Get.theme.focusColor.withOpacity(0.4)),
             ),
           );
       }),
