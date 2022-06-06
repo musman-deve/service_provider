@@ -1,31 +1,69 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:home_services_provider/app/models/category_model.dart';
-import 'package:home_services_provider/app/models/e_provider_model.dart';
-import 'package:home_services_provider/app/models/e_service_model.dart';
 import 'package:home_services_provider/app/models/media_model.dart';
-import 'package:home_services_provider/app/modules/e_services/controllers/e_service_form_controller.dart';
 import 'package:home_services_provider/app/modules/global_widgets/block_button_widget.dart';
 import 'package:home_services_provider/app/modules/global_widgets/images_field_widget.dart';
-import 'package:home_services_provider/app/modules/global_widgets/multi_select_dialog.dart';
-import 'package:home_services_provider/app/modules/global_widgets/select_dialog.dart';
 import 'package:home_services_provider/app/modules/global_widgets/text_field_widget.dart';
 import 'package:home_services_provider/app/modules/settings/widgets/text_field.dart';
+import 'package:home_services_provider/app/routes/app_routes.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../registration_review.dart';
 
-class FreelanceService extends GetView<EServiceFormController> {
+class FreelanceService extends StatefulWidget {
+  const FreelanceService({Key key}) : super(key: key);
+
+  @override
+  State<FreelanceService> createState() => _FreelanceServiceState();
+}
+
+class _FreelanceServiceState extends State<FreelanceService> {
+  AuthController controller = AuthController();
+  int _groupValue = -1;
+  File imageFile;
+  _getFromGallery() async {
+    PickedFile pickedFile = await ImagePicker()
+        .getImage(source: ImageSource.gallery, maxWidth: 600, maxHeight: 200);
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  /// Get from Camera
+  _getFromCamera() async {
+    PickedFile pickedFile = await ImagePicker().getImage(
+      source: ImageSource.camera,
+      maxHeight: 500,
+      maxWidth: 600,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  List categoties = [
+    'Category1',
+    'Category2',
+    'Category3',
+  ];
+  List Subcategoties = [
+    'Sub-Category1',
+    'Sub-Category2',
+    'Sub-Category3',
+  ];
+  String _dropDownValue;
+  String _dropDownValue2;
   @override
   Widget build(BuildContext context) {
-    print(controller.eService.value);
-
     final screenHeight = MediaQuery.of(context).size.height;
     final statusBar = MediaQuery.of(context).padding.top;
     // final double topContainer = 180;
@@ -48,7 +86,7 @@ class FreelanceService extends GetView<EServiceFormController> {
             ),
           ),
           Form(
-            key: controller.eServiceForm,
+            key: controller.registerFormKey,
             child: Container(
               height: 180,
               width: Get.width,
@@ -93,73 +131,39 @@ class FreelanceService extends GetView<EServiceFormController> {
                       SizedBox(
                         height: 10,
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "".tr,
-                              style: Get.textTheme.bodyText1,
-                              textAlign: TextAlign.start,
-                            ),
-                          ),
-                          MaterialButton(
-                            onPressed: () async {
-                              final selectedValues =
-                                  await showDialog<Set<Category>>(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return MultiSelectDialog(
-                                    title: "Select Categories".tr,
-                                    submitText: "Submit".tr,
-                                    cancelText: "Cancel".tr,
-                                    items: controller
-                                        .getMultiSelectCategoriesItems(),
-                                    initialSelectedValues: controller.categories
-                                        .where(
-                                          (category) =>
-                                              controller
-                                                  .eService.value.categories
-                                                  ?.where((element) =>
-                                                      element.id == category.id)
-                                                  ?.isNotEmpty ??
-                                              false,
-                                        )
-                                        .toSet(),
-                                  );
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xffF2F2F2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: DropdownButton(
+                            underline: SizedBox(),
+                            hint: _dropDownValue == null
+                                ? Text('')
+                                : Text(
+                                    _dropDownValue,
+                                    style: TextStyle(color: Colors.black87),
+                                  ),
+                            isExpanded: true,
+                            iconSize: 30.0,
+                            style: TextStyle(color: Colors.black87),
+                            items: categoties.map(
+                              (val) {
+                                return DropdownMenuItem<String>(
+                                  value: val,
+                                  child: Text(val),
+                                );
+                              },
+                            ).toList(),
+                            onChanged: (val) {
+                              setState(
+                                () {
+                                  _dropDownValue = val;
                                 },
                               );
-                              controller.eService.update((val) async {
-                                val.categories = selectedValues?.toList();
-                                var res = await getProviders(2);
-                                print("My Result:$res");
-                              });
-                            },
-                            shape: StadiumBorder(),
-                            color: Get.theme.colorScheme.secondary
-                                .withOpacity(0.1),
-                            child: Text("Select".tr,
-                                style: Get.textTheme.subtitle1),
-                            elevation: 0,
-                            hoverElevation: 0,
-                            focusElevation: 0,
-                            highlightElevation: 0,
-                          ),
-                        ],
+                            }),
                       ),
-                      Obx(() {
-                        if (controller.eService.value?.categories?.isEmpty ??
-                            true) {
-                          return Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Text(
-                              " ".tr,
-                              style: Get.textTheme.caption,
-                            ),
-                          );
-                        } else {
-                          return buildCategories(controller.eService.value);
-                        }
-                      }),
                       SizedBox(
                         height: 10,
                       ),
@@ -170,106 +174,42 @@ class FreelanceService extends GetView<EServiceFormController> {
                       SizedBox(
                         height: 10,
                       ),
-                      Obx(() {
-                        if (controller.eProviders.length > 1)
-                          return Container(
-                            padding: EdgeInsets.only(
-                                top: 8, bottom: 10, left: 20, right: 20),
-                            margin: EdgeInsets.only(
-                                left: 20, right: 20, top: 20, bottom: 20),
-                            decoration: BoxDecoration(
-                                color: Get.theme.primaryColor,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10)),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color:
-                                          Get.theme.focusColor.withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: Offset(0, 5)),
-                                ],
-                                border: Border.all(
-                                    color: Get.theme.focusColor
-                                        .withOpacity(0.05))),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        "Providers".tr,
-                                        style: Get.textTheme.bodyText1,
-                                        textAlign: TextAlign.start,
-                                      ),
-                                    ),
-                                    MaterialButton(
-                                      onPressed: () async {
-                                        final selectedValue =
-                                            await showDialog<EProvider>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return SelectDialog(
-                                              title: "Select Provider".tr,
-                                              submitText: "Submit".tr,
-                                              cancelText: "Cancel".tr,
-                                              items: controller
-                                                  .getSelectProvidersItems(),
-                                              initialSelectedValue: controller
-                                                  .eProviders
-                                                  .firstWhere(
-                                                (element) =>
-                                                    element.id ==
-                                                    controller.eService.value
-                                                        .eProvider?.id,
-                                                orElse: () => new EProvider(),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                        controller.eService.update((val) {
-                                          val.eProvider = selectedValue;
-                                        });
-                                      },
-                                      shape: StadiumBorder(),
-                                      color: Get.theme.colorScheme.secondary
-                                          .withOpacity(0.1),
-                                      child: Text("Select".tr,
-                                          style: Get.textTheme.subtitle1),
-                                      elevation: 0,
-                                      hoverElevation: 0,
-                                      focusElevation: 0,
-                                      highlightElevation: 0,
-                                    ),
-                                  ],
-                                ),
-                                Obx(() {
-                                  if (controller.eService.value?.eProvider ==
-                                      null) {
-                                    return Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 20),
-                                      child: Text(
-                                        "Select providers".tr,
-                                        style: Get.textTheme.caption,
-                                      ),
-                                    );
-                                  } else {
-                                    return buildProvider(
-                                        controller.eService.value);
-                                  }
-                                })
-                              ],
-                            ),
-                          );
-                        else if (controller.eProviders.length == 1) {
-                          controller.eService.value.eProvider =
-                              controller.eProviders.first;
-                          return SizedBox();
-                        } else {
-                          return SizedBox();
-                        }
-                      }),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xffF2F2F2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: DropdownButton(
+                            underline: SizedBox(),
+                            hint: _dropDownValue2 == null
+                                ? Text('')
+                                : Text(
+                                    _dropDownValue2,
+                                    style: TextStyle(color: Colors.black87),
+                                  ),
+                            isExpanded: true,
+                            iconSize: 30.0,
+                            style: TextStyle(color: Colors.black87),
+                            items: Subcategoties.map(
+                              (val) {
+                                return DropdownMenuItem<String>(
+                                  value: val,
+                                  child: Text(val),
+                                );
+                              },
+                            ).toList(),
+                            onChanged: (val) {
+                              setState(
+                                () {
+                                  _dropDownValue2 = val;
+                                },
+                              );
+                            }),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
                       Text(
                         'Service Name',
                         style: Get.textTheme.bodyText1,
@@ -278,16 +218,21 @@ class FreelanceService extends GetView<EServiceFormController> {
                         height: 10,
                       ),
                       TextFieldWidget(
-                        padding: EdgeInsets.all(5),
-                        margin: EdgeInsets.all(3),
                         bgColor: Color(0xffF2F2F2),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                        radius: BorderRadius.circular(9),
+                        style: TextStyle(fontSize: 14),
+                        cursorHeight: 20,
+                        initialValue:
+                            controller.currentUser?.value?.serviceName,
                         onSaved: (input) =>
-                            controller.eService.value.name = input,
-                        validator: (input) => input.length < 3
-                            ? "Should be more than 3 letters".tr
+                            controller.currentUser.value.serviceName = input,
+                        validator: (input) => input.isEmpty
+                            ? "Service name is required".tr
                             : null,
-                        initialValue: controller.eService.value.name,
-                        hintText: "Post Party Cleaning".tr,
                       ),
                       SizedBox(
                         height: 15,
@@ -299,48 +244,75 @@ class FreelanceService extends GetView<EServiceFormController> {
                       SizedBox(
                         height: 10,
                       ),
-                      Obx(() {
-                        return ListTileTheme(
-                          contentPadding: EdgeInsets.all(0.0),
-                          horizontalTitleGap: 0,
-                          dense: true,
-                          textColor: Get.theme.hintColor,
-                          child: ListBody(
-                            children: [
-                              RadioListTile(
-                                value: "hourly",
-                                groupValue: controller.eService.value.priceUnit,
-                                selected: controller.eService.value.priceUnit ==
-                                    "hourly",
-                                title: Text("Hourly".tr),
-                                activeColor: Get.theme.colorScheme.secondary,
-                                controlAffinity:
-                                    ListTileControlAffinity.trailing,
-                                onChanged: (checked) {
-                                  controller.eService.update((val) {
-                                    val.priceUnit = "hourly";
-                                  });
-                                },
-                              ),
-                              RadioListTile(
-                                value: "fixed",
-                                groupValue: controller.eService.value.priceUnit,
-                                title: Text("Fixed".tr),
-                                activeColor: Get.theme.colorScheme.secondary,
-                                selected: controller.eService.value.priceUnit ==
-                                    "fixed",
-                                controlAffinity:
-                                    ListTileControlAffinity.trailing,
-                                onChanged: (checked) {
-                                  controller.eService.update((val) {
-                                    val.priceUnit = "fixed";
-                                  });
-                                },
-                              )
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        margin: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                            color: Color(0xffF2F2F2),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Get.theme.focusColor.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5)),
                             ],
-                          ),
-                        );
-                      }),
+                            border: Border.all(
+                                color: Get.theme.focusColor.withOpacity(0.05))),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: 10),
+                            Obx(() {
+                              return ListTileTheme(
+                                contentPadding: EdgeInsets.all(0.0),
+                                horizontalTitleGap: 0,
+                                dense: true,
+                                textColor: Get.theme.hintColor,
+                                child: ListBody(
+                                  children: [
+                                    RadioListTile(
+                                      value: "hourly",
+                                      groupValue: controller
+                                          .currentUser.value.priceRole,
+                                      selected: controller
+                                              .currentUser.value.priceRole ==
+                                          "hourly",
+                                      title: Text("Hourly".tr),
+                                      activeColor:
+                                          Get.theme.colorScheme.secondary,
+                                      controlAffinity:
+                                          ListTileControlAffinity.trailing,
+                                      onChanged: (checked) {
+                                        controller.currentUser.update((val) {
+                                          val.priceRole = "hourly";
+                                        });
+                                      },
+                                    ),
+                                    RadioListTile(
+                                      value: "fixed",
+                                      groupValue: controller
+                                          .currentUser.value.priceRole,
+                                      title: Text("Fixed".tr),
+                                      activeColor:
+                                          Get.theme.colorScheme.secondary,
+                                      selected: controller
+                                              .currentUser.value.priceRole ==
+                                          "fixed",
+                                      controlAffinity:
+                                          ListTileControlAffinity.trailing,
+                                      onChanged: (checked) {
+                                        controller.currentUser.update((val) {
+                                          val.priceRole = "fixed";
+                                        });
+                                      },
+                                    )
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 10,
                       ),
@@ -352,17 +324,22 @@ class FreelanceService extends GetView<EServiceFormController> {
                         height: 10,
                       ),
                       TextFieldWidget(
-                        padding: EdgeInsets.all(5),
-                        margin: EdgeInsets.all(3),
                         bgColor: Color(0xffF2F2F2),
-                        onSaved: (input) =>
-                            controller.eService.value.description = input,
-                        validator: (input) => input.length < 3
-                            ? "Should be more than 3 letters".tr
-                            : null,
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        radius: BorderRadius.circular(9),
+                        style: TextStyle(fontSize: 14),
                         keyboardType: TextInputType.multiline,
-                        initialValue: controller.eService.value.description,
-                        hintText: "Description for Post Party Cleaning".tr,
+                        cursorHeight: 20,
+                        initialValue:
+                            controller.currentUser?.value?.serviceDesc,
+                        onSaved: (input) =>
+                            controller.currentUser.value.serviceDesc = input,
+                        validator: (input) => input.length < 150
+                            ? "Min. 150 characters".tr
+                            : null,
                       ),
                       SizedBox(
                         height: 10,
@@ -386,20 +363,20 @@ class FreelanceService extends GetView<EServiceFormController> {
                       Obx(() {
                         return ImagesFieldWidget(
                           color: Color(0xffF2F2F2),
-                          padding: EdgeInsets.all(5),
+                          padding: EdgeInsets.all(10),
                           margin: EdgeInsets.all(3),
-                          label: "Images".tr,
-                          field: 'image',
-                          tag: controller.eServiceForm.hashCode.toString(),
-                          initialImages: controller.eService.value.images,
+                          label: "additional_service".tr,
+                          field: 'additional_service',
+                          tag: controller.currentUser.hashCode.toString(),
+                          initialImages: controller.currentUser.value.images,
                           uploadCompleted: (uuid) {
-                            controller.eService.update((val) {
+                            controller.currentUser.update((val) {
                               val.images = val.images ?? [];
-                              val.images.add(Media(id: uuid));
+                              val.images.add(new Media(id: uuid));
                             });
                           },
                           reset: (uuids) {
-                            controller.eService.update((val) {
+                            controller.currentUser.update((val) {
                               val.images.clear();
                             });
                           },
@@ -416,9 +393,9 @@ class FreelanceService extends GetView<EServiceFormController> {
                             text: Text('Submit',
                                 style: Get.textTheme.headline6.merge(
                                     TextStyle(color: Get.theme.primaryColor))),
-                            onPressed: () {
-                              Get.to(() =>
-                                  RegistrationReview()); //// new screen here
+                            onPressed: () async {
+                              await Get.toNamed(
+                                  Routes.OTP_VERIFICATION); //// new screen here
                             }),
                       ),
                       SizedBox(
@@ -433,80 +410,5 @@ class FreelanceService extends GetView<EServiceFormController> {
         ],
       ),
     );
-  }
-
-  Widget buildCategories(EService _eService) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      child: Wrap(
-          alignment: WrapAlignment.start,
-          spacing: 5,
-          runSpacing: 8,
-          children: List.generate(_eService.categories?.length ?? 0, (index) {
-            var _category = _eService.categories.elementAt(index);
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              child: Text(_category.name,
-                  style: Get.textTheme.bodyText1
-                      .merge(TextStyle(color: _category.color))),
-              decoration: BoxDecoration(
-                  color: _category.color.withOpacity(0.2),
-                  border: Border.all(
-                    color: _category.color.withOpacity(0.1),
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-            );
-          })),
-    );
-  }
-
-  Widget buildSubCategories(EService _eService) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: 5,
-        runSpacing: 8,
-        children: List.generate(_eService.subCategories?.length ?? 0, (index) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: Text(_eService.subCategories.elementAt(index).name,
-                style: Get.textTheme.caption),
-            decoration: BoxDecoration(
-                color: Get.theme.primaryColor,
-                border: Border.all(
-                  color: Get.theme.focusColor.withOpacity(0.2),
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget buildProvider(EService _eService) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 4),
-        child: Text(_eService.eProvider?.name ?? '',
-            style: Get.textTheme.bodyText2),
-        decoration:
-            BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(20))),
-      ),
-    );
-  }
-
-  Future<dynamic> getProviders(int id) async {
-    Dio dio = Dio();
-    var response = await dio.get(
-        'http://192.168.0.10:8000/api/provider/sub-categories?category_id=$id');
-    if (response.statusCode == 200) {
-      print("Get Data: ${response.data}");
-      return response;
-    } else {
-      print("Response Message : ${response.statusMessage}");
-      return response;
-    }
   }
 }

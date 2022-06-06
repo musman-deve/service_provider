@@ -218,7 +218,7 @@ class _UserInformationState extends State<UserInformation> {
                           showErrorBorder: false,
                           maxLength: 13,
                           cursorHeight: 20,
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.text,
                           initialValue:
                               controller.currentUser?.value?.phoneNumber,
                           hintText: 'Enter Phone Number',

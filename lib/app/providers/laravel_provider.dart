@@ -1624,6 +1624,28 @@ class LaravelApiClient extends GetxService with ApiClient {
     }
   }
 
+  Future<String> uploadRegisterImage(File file, String field) async {
+    String fileName = file.path.split('/').last;
+    var _queryParameters = {
+      'api_token': authService.apiToken,
+    };
+    Uri _uri = getApiBaseUri("uploads/store")
+        .replace(queryParameters: _queryParameters);
+
+    dio.FormData formData = dio.FormData.fromMap({
+      "file": await dio.MultipartFile.fromFile(file.path, filename: fileName),
+      "uuid": Uuid().generateV4(),
+      "field": field,
+    });
+    var response = await _httpClient.postUri(_uri, data: formData);
+    print(response.data);
+    if (response.data['data'] != false) {
+      return response.data['data'];
+    } else {
+      throw new Exception(response.data['message']);
+    }
+  }
+
   Future<bool> deleteUploaded(String uuid) async {
     var _queryParameters = {
       'api_token': authService.apiToken,
