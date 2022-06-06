@@ -99,9 +99,10 @@ class AuthController extends GetxController {
       await _userRepository.signUpWithEmailAndPassword(
           currentUser.value.email, currentUser.value.apiToken);
       loading.value = false;
-      await Get.offAllNamed(
-        Routes.REGISTRATION_REVIEW,
-      );
+
+      // await Get.offAllNamed(
+      //   Routes.REGISTRATION_REVIEW,
+      // );
     } catch (e) {
       loading.value = false;
       Get.to(() => UserInformation());

@@ -11,8 +11,14 @@ import 'role_model.dart';
 class User extends Model {
   String name;
   String phoneVerifyAt;
+  String catId;
+  String subCatId;
+  String serviceName;
+  String serviceDesc;
+  String priceRole;
   String email;
   String providerId;
+  List<Media> images;
   String password;
   Media avatar;
   String apiToken;
@@ -35,6 +41,12 @@ class User extends Model {
 
   User(
       {this.name,
+      this.images,
+      this.catId,
+      this.subCatId,
+      this.serviceName,
+      this.serviceDesc,
+      this.priceRole,
       this.email,
       this.phoneVerifyAt,
       this.password,
@@ -57,12 +69,19 @@ class User extends Model {
 
   User.fromJson(Map<String, dynamic> json) {
     name = stringFromJson(json, 'name');
+    images = mediaListFromJson(json, 'additional_service');
     phoneVerifyAt = stringFromJson(json, 'phone_verified_at');
     email = stringFromJson(json, 'email');
     apiToken = stringFromJson(json, 'api_token');
     deviceToken = stringFromJson(json, 'device_token');
     phoneNumber = stringFromJson(json, 'phone_number');
     verifiedPhone = boolFromJson(json, 'phone_verified_at');
+
+    catId = stringFromJson(json, 'service_category_id');
+    subCatId = stringFromJson(json, 'service_sub_category_id');
+    serviceName = stringFromJson(json, 'service_name');
+    serviceDesc = stringFromJson(json, 'service_description');
+    priceRole = stringFromJson(json, 'price_role');
     avatar = mediaFromJson(json, 'avatar');
     auth = boolFromJson(json, 'auth');
     roles = listFromJson(json, 'roles', (v) => Role.fromJson(v));
@@ -94,6 +113,13 @@ class User extends Model {
 
     data['name'] = this.name;
     data['email'] = this.email;
+    if (this.images != null) {
+      data['additional_service'] = this
+          .images
+          .where((element) => Uuid.isUuid(element.id))
+          .map((v) => v.id)
+          .toList();
+    }
     data['phone_verified_at'] = this.phoneVerifyAt;
     if (password != null && password != '') {
       data['password'] = this.password;
@@ -111,6 +137,13 @@ class User extends Model {
     data['service_provider_id'] = providerId;
     data["city"] = city;
     data["district"] = district;
+
+    data["service_category_id"] = catId;
+    data["service_sub_category_id"] = subCatId;
+    data['service_name'] = serviceName;
+    data["price_role"] = priceRole;
+    data["service_description"] = serviceDesc;
+
     data["street"] = street;
     data["building_number"] = buildingNumber;
     data["postal_code"] = postalCode;
@@ -128,8 +161,15 @@ class User extends Model {
     if (roles != null) {
       data['roles'] = this.roles.map((e) => e.toJson()).toList();
     }
+
     return data;
   }
+
+  String get firstImageUrl => this.images?.first?.url ?? '';
+
+  String get firstImageThumb => this.images?.first?.thumb ?? '';
+
+  String get firstImageIcon => this.images?.first?.icon ?? '';
 
   Map toRestrictMap() {
     var map = new Map<String, dynamic>();

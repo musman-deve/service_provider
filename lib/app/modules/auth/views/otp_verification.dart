@@ -6,6 +6,7 @@ import 'package:get/get_navigation/get_navigation.dart';
 import 'package:home_services_provider/app/modules/auth/views/user_address.dart';
 import 'package:home_services_provider/app/modules/global_widgets/block_button_widget.dart';
 import 'package:home_services_provider/app/modules/global_widgets/text_field_widget.dart';
+import 'package:home_services_provider/app/routes/app_routes.dart';
 
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -158,8 +159,9 @@ class _OtpVerificationState extends State<OtpVerification> {
                                       onPressed: () async {
                                         await controller.verifyPhone();
                                         widget.isFreelancer
-                                            ? controller.register()
-                                            : controller.providerRegister();
+                                            ? Get.offAll(Routes.BECOME_PROVIDER)
+                                            : Get.offAll(
+                                                Routes.REGISTRATION_REVIEW);
                                       }),
                                 ),
                                 SizedBox(

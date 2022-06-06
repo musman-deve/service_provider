@@ -1,24 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:home_services_provider/app/models/category_model.dart';
-import 'package:home_services_provider/app/models/e_provider_model.dart';
-import 'package:home_services_provider/app/models/e_service_model.dart';
 import 'package:home_services_provider/app/models/media_model.dart';
 import 'package:home_services_provider/app/models/service_sub_categories_model.dart';
 import 'package:home_services_provider/app/modules/e_services/controllers/e_service_form_controller.dart';
 import 'package:home_services_provider/app/modules/global_widgets/block_button_widget.dart';
 import 'package:home_services_provider/app/modules/global_widgets/images_field_widget.dart';
-import 'package:home_services_provider/app/modules/global_widgets/multi_select_dialog.dart';
-import 'package:home_services_provider/app/modules/global_widgets/select_dialog.dart';
 import 'package:home_services_provider/app/modules/global_widgets/text_field_widget.dart';
 import 'package:home_services_provider/app/modules/settings/widgets/text_field.dart';
+import 'package:home_services_provider/app/routes/app_routes.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../models/service_categories_model.dart';
 import '../../controllers/auth_controller.dart';
 import '../registration_review.dart';
@@ -32,6 +26,7 @@ class FreelanceService extends StatefulWidget {
 
 class _FreelanceServiceState extends State<FreelanceService> {
   EServiceFormController controller = EServiceFormController();
+  AuthController aController = AuthController();
   var selectedCat;
   var selectedSubCat;
   List<Categories> categories = [];
@@ -78,7 +73,7 @@ class _FreelanceServiceState extends State<FreelanceService> {
             ),
           ),
           Form(
-            key: controller.eServiceForm,
+            // key: controller.registerFormKey,
             child: Container(
               height: 180,
               width: Get.width,
@@ -370,8 +365,6 @@ class _FreelanceServiceState extends State<FreelanceService> {
                         height: 10,
                       ),
                       TextFieldWidget(
-                        padding: EdgeInsets.all(5),
-                        margin: EdgeInsets.all(3),
                         bgColor: Color(0xffF2F2F2),
                         onSaved: (input) => controller.eService.value.name = input,
                         validator: (input) => input.length < 3 ? "Should be more than 3 letters".tr : null,
@@ -388,44 +381,62 @@ class _FreelanceServiceState extends State<FreelanceService> {
                       SizedBox(
                         height: 10,
                       ),
-                      Obx(() {
-                        return ListTileTheme(
-                          contentPadding: EdgeInsets.all(0.0),
-                          horizontalTitleGap: 0,
-                          dense: true,
-                          textColor: Get.theme.hintColor,
-                          child: ListBody(
-                            children: [
-                              RadioListTile(
-                                value: "hourly",
-                                groupValue: controller.eService.value.priceUnit,
-                                selected: controller.eService.value.priceUnit == "hourly",
-                                title: Text("Hourly".tr),
-                                activeColor: Get.theme.colorScheme.secondary,
-                                controlAffinity: ListTileControlAffinity.trailing,
-                                onChanged: (checked) {
-                                  controller.eService.update((val) {
-                                    val.priceUnit = "hourly";
-                                  });
-                                },
-                              ),
-                              RadioListTile(
-                                value: "fixed",
-                                groupValue: controller.eService.value.priceUnit,
-                                title: Text("Fixed".tr),
-                                activeColor: Get.theme.colorScheme.secondary,
-                                selected: controller.eService.value.priceUnit == "fixed",
-                                controlAffinity: ListTileControlAffinity.trailing,
-                                onChanged: (checked) {
-                                  controller.eService.update((val) {
-                                    val.priceUnit = "fixed";
-                                  });
-                                },
-                              )
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        margin: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                            color: Color(0xffF2F2F2),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Get.theme.focusColor.withOpacity(0.1), blurRadius: 10, offset: Offset(0, 5)),
                             ],
-                          ),
-                        );
-                      }),
+                            border: Border.all(color: Get.theme.focusColor.withOpacity(0.05))),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: 10),
+                            Obx(() {
+                              return ListTileTheme(
+                                contentPadding: EdgeInsets.all(0.0),
+                                horizontalTitleGap: 0,
+                                dense: true,
+                                textColor: Get.theme.hintColor,
+                                child: ListBody(
+                                  children: [
+                                    RadioListTile(
+                                      value: "hourly",
+                                      groupValue: aController.currentUser.value.priceRole,
+                                      selected: aController.currentUser.value.priceRole == "hourly",
+                                      title: Text("Hourly".tr),
+                                      activeColor: Get.theme.colorScheme.secondary,
+                                      controlAffinity: ListTileControlAffinity.trailing,
+                                      onChanged: (checked) {
+                                        aController.currentUser.update((val) {
+                                          val.priceRole = "hourly";
+                                        });
+                                      },
+                                    ),
+                                    RadioListTile(
+                                      value: "fixed",
+                                      groupValue: aController.currentUser.value.priceRole,
+                                      title: Text("Fixed".tr),
+                                      activeColor: Get.theme.colorScheme.secondary,
+                                      selected: aController.currentUser.value.priceRole == "fixed",
+                                      controlAffinity: ListTileControlAffinity.trailing,
+                                      onChanged: (checked) {
+                                        aController.currentUser.update((val) {
+                                          val.priceRole = "fixed";
+                                        });
+                                      },
+                                    )
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 10,
                       ),
@@ -437,14 +448,16 @@ class _FreelanceServiceState extends State<FreelanceService> {
                         height: 10,
                       ),
                       TextFieldWidget(
-                        padding: EdgeInsets.all(5),
-                        margin: EdgeInsets.all(3),
                         bgColor: Color(0xffF2F2F2),
-                        onSaved: (input) => controller.eService.value.description = input,
-                        validator: (input) => input.length < 3 ? "Should be more than 3 letters".tr : null,
+                        margin: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        radius: BorderRadius.circular(9),
+                        style: TextStyle(fontSize: 14),
                         keyboardType: TextInputType.multiline,
-                        initialValue: controller.eService.value.description,
-                        hintText: "Description for Post Party Cleaning".tr,
+                        cursorHeight: 20,
+                        initialValue: aController.currentUser?.value?.serviceDesc,
+                        onSaved: (input) => aController.currentUser.value.serviceDesc = input,
+                        validator: (input) => input.length < 150 ? "Min. 150 characters".tr : null,
                       ),
                       SizedBox(
                         height: 10,
@@ -468,20 +481,20 @@ class _FreelanceServiceState extends State<FreelanceService> {
                       Obx(() {
                         return ImagesFieldWidget(
                           color: Color(0xffF2F2F2),
-                          padding: EdgeInsets.all(5),
+                          padding: EdgeInsets.all(10),
                           margin: EdgeInsets.all(3),
-                          label: "Images".tr,
-                          field: 'image',
-                          tag: controller.eServiceForm.hashCode.toString(),
-                          initialImages: controller.eService.value.images,
+                          label: "additional_service".tr,
+                          field: 'additional_service',
+                          tag: aController.currentUser.hashCode.toString(),
+                          initialImages: aController.currentUser.value.images,
                           uploadCompleted: (uuid) {
-                            controller.eService.update((val) {
+                            aController.currentUser.update((val) {
                               val.images = val.images ?? [];
-                              val.images.add(Media(id: uuid));
+                              val.images.add(new Media(id: uuid));
                             });
                           },
                           reset: (uuids) {
-                            controller.eService.update((val) {
+                            aController.currentUser.update((val) {
                               val.images.clear();
                             });
                           },
@@ -497,8 +510,8 @@ class _FreelanceServiceState extends State<FreelanceService> {
                             color: Get.theme.colorScheme.secondary,
                             text: Text('Submit',
                                 style: Get.textTheme.headline6.merge(TextStyle(color: Get.theme.primaryColor))),
-                            onPressed: () {
-                              Get.to(() => RegistrationReview()); //// new screen here
+                            onPressed: () async {
+                              await Get.toNamed(Routes.OTP_VERIFICATION); //// new screen here
                             }),
                       ),
                       SizedBox(
@@ -511,33 +524,6 @@ class _FreelanceServiceState extends State<FreelanceService> {
             ),
           )
         ],
-      ),
-    );
-  }
-
-  Widget buildCategories(EService _eService) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: 5,
-        runSpacing: 8,
-        children: List.generate(
-          _eService.categories?.length ?? 0,
-          (index) {
-            var _category = _eService.categories.elementAt(index);
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              child: Text(_category.name, style: Get.textTheme.bodyText1.merge(TextStyle(color: _category.color))),
-              decoration: BoxDecoration(
-                  color: _category.color.withOpacity(0.2),
-                  border: Border.all(
-                    color: _category.color.withOpacity(0.1),
-                  ),
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-            );
-          },
-        ),
       ),
     );
   }

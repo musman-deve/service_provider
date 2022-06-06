@@ -280,8 +280,7 @@ class _UserAddressState extends State<UserAddress> {
                                     .enableOtp) {
                                   await _userRepository.sendCodeToPhone();
                                   if (widget.isFreelancer) {
-                                    await Get.put(EServiceFormController());
-                                    await Get.toNamed(Routes.BECOME_PROVIDER);
+                                    await Get.toNamed(Routes.OTP_VERIFICATION);
                                   } else {
                                     await Get.toNamed(Routes.OTP_VERIFICATION);
                                   }
